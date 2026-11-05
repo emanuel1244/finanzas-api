@@ -1,0 +1,25 @@
+# ---- .NET build output ----
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userprefs
+
+# ---- Visual Studio / Rider ----
+.vs/
+.idea/
+*.swp
+
+# ---- Secretos / configuracion local (NO versionar) ----
+appsettings.dev.json
+appsettings.*.Local.json
+*.env
+.env
+
+# ---- Logs y temporales ----
+*.log
+run_dev.log
+run_dev_err.log
+ssm_params.json
+last_cmd.txt
