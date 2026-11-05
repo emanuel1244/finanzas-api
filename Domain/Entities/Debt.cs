@@ -90,6 +90,13 @@ public class Debt : Entity, IOwned
         if (amount > Balance + interest)
             throw new DomainException($"El pago excede el saldo pendiente más intereses ({Balance + interest:N2}).");
 
+        // Cuota esperada del periodo (antes de abonar). Si el abono es menor, el faltante
+        // se registra como "saldo a favor del mes": capital que no se amortizó y que queda
+        // disponible en el flujo de caja. El saldo baja solo por lo realmente abonado, así
+        // que las cuotas de los periodos restantes se recalculan al alza (mismo plazo).
+        var installmentDue = Round(CurrentInstallment);
+        var shortfall = installmentDue > amount ? Round(installmentDue - amount) : 0m;
+
         var capital = amount - interest;
         Balance -= capital;
         if (Balance <= 0)
@@ -98,7 +105,7 @@ public class Debt : Entity, IOwned
             Status = DebtStatus.Paid;
         }
 
-        var payment = new DebtPayment(date, amount, interest, capital, Balance);
+        var payment = new DebtPayment(date, amount, interest, capital, Balance, installmentDue, shortfall);
         _payments.Add(payment);
         return payment;
     }
@@ -181,16 +188,25 @@ public class DebtPayment : Entity
     public decimal Interest { get; private set; }
     public decimal Capital { get; private set; }
     public decimal BalanceAfter { get; private set; }
+    /// <summary>Cuota esperada del periodo al momento del pago.</summary>
+    public decimal InstallmentDue { get; private set; }
+    /// <summary>Faltante respecto a la cuota esperada (saldo a favor del mes). 0 si se pagó completa o de más.</summary>
+    public decimal Shortfall { get; private set; }
+    /// <summary>Indica si el abono fue menor que la cuota esperada.</summary>
+    public bool IsPartial => Shortfall > 0;
 
     private DebtPayment() { }
 
-    internal DebtPayment(DateOnly date, decimal amount, decimal interest, decimal capital, decimal balanceAfter)
+    internal DebtPayment(DateOnly date, decimal amount, decimal interest, decimal capital, decimal balanceAfter,
+        decimal installmentDue, decimal shortfall)
     {
         Date = date;
         Amount = amount;
         Interest = interest;
         Capital = capital;
         BalanceAfter = balanceAfter;
+        InstallmentDue = installmentDue;
+        Shortfall = shortfall;
     }
 }
 

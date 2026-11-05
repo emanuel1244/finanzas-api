@@ -80,7 +80,8 @@ public record DebtDto(int Id, string Name, string? Creditor, decimal Principal, 
 
 public record DebtPaymentRequest([Range(0.01, 999999999999)] decimal Amount, DateOnly Date);
 
-public record DebtPaymentDto(int Id, DateOnly Date, decimal Amount, decimal Interest, decimal Capital, decimal BalanceAfter);
+public record DebtPaymentDto(int Id, DateOnly Date, decimal Amount, decimal Interest, decimal Capital, decimal BalanceAfter,
+    decimal InstallmentDue, decimal Shortfall, bool IsPartial);
 
 public record ScheduleRowDto(int Number, DateOnly DueDate, decimal Installment, decimal Interest, decimal Capital, decimal Balance);
 
@@ -156,7 +157,7 @@ public static class Mappers
             d.RemainingPeriods, d.TotalInterestPaid);
 
     public static DebtPaymentDto ToDto(this DebtPayment p) =>
-        new(p.Id, p.Date, p.Amount, p.Interest, p.Capital, p.BalanceAfter);
+        new(p.Id, p.Date, p.Amount, p.Interest, p.Capital, p.BalanceAfter, p.InstallmentDue, p.Shortfall, p.IsPartial);
 
     public static ScheduleRowDto ToDto(this ScheduleRow r) =>
         new(r.Number, r.DueDate, r.Installment, r.Interest, r.Capital, r.Balance);

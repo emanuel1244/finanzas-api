@@ -86,6 +86,15 @@ public static class DbInitializer
                 ALTER TABLE [Debts] ADD [AmortizationSystem] int NOT NULL CONSTRAINT [DF_Debts_AmortizationSystem] DEFAULT 1;
             END
             """);
+
+        // Pagos parciales: cuota esperada y faltante (saldo a favor) por cada pago de deuda.
+        await db.Database.ExecuteSqlRawAsync("""
+            IF OBJECT_ID(N'[DebtPayments]', N'U') IS NOT NULL AND COL_LENGTH(N'DebtPayments', N'InstallmentDue') IS NULL
+            BEGIN
+                ALTER TABLE [DebtPayments] ADD [InstallmentDue] decimal(18,2) NOT NULL CONSTRAINT [DF_DebtPayments_InstallmentDue] DEFAULT 0;
+                ALTER TABLE [DebtPayments] ADD [Shortfall] decimal(18,2) NOT NULL CONSTRAINT [DF_DebtPayments_Shortfall] DEFAULT 0;
+            END
+            """);
     }
 
     /// <summary>Devuelve el Id de un administrador; si no hay usuarios, crea el inicial desde la sección "Seed".</summary>
